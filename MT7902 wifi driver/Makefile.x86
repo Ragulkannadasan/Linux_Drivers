@@ -243,23 +243,8 @@ endif
 	@depmod $(DEPMOD_ARGS) -a $(KVER)
 
 install_fw:
-ifeq ($(wildcard $(FWDIR)/..), )
 	@install -Dvm 644 -t $(FWDIR) firmware/*.bin
-else
-	@cp -r firmware tmp
-ifneq ($(wildcard $(FWDIR)/../*.zst), )
-	@zstd -fq --rm tmp/*.bin
-endif
-ifneq ($(wildcard $(FWDIR)/../*.xz), )
-	@xz -f -C crc32 tmp/*.bin
-endif
-ifneq ($(wildcard $(FWDIR)/../*.gz), )
-	@gzip -f tmp/*.bin
-endif
-	@install -Dvm 644 -t $(FWDIR) tmp/*
-	@rm -rf tmp
-endif
-
+	@rm -f $(FWDIR)/*.xz $(FWDIR)/*.zst $(FWDIR)/*.gz
 driver:
 	+cd $(DRIVER_DIR) && make -C $(LINUX_SRC) M=$(DRIVER_DIR) PLATFORM_FLAGS="$(PLATFORM_FLAGS)" modules
 

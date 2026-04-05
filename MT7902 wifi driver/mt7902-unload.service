@@ -1,0 +1,12 @@
+[Unit]
+Description=Unload MT7902 Wi-Fi driver before shutdown and suspend
+DefaultDependencies=no
+Before=shutdown.target halt.target poweroff.target reboot.target sleep.target suspend.target hibernate.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/modprobe -r mt7902
+TimeoutSec=15
+
+[Install]
+WantedBy=shutdown.target halt.target poweroff.target reboot.target sleep.target suspend.target hibernate.target
