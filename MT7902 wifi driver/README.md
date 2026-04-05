@@ -1,141 +1,95 @@
+<div align="center">
+  <h1>📡 MediaTek MT7902 Linux Driver (gen4-mt7902)</h1>
+  <p>
+    An out-of-tree Linux kernel driver for the MediaTek MT7902 PCIe Wi-Fi card.
+  </p>
+
+<!-- Badges -->
+<p>
+  <a href="https://github.com/hmtheboy154/gen4-mt7902">
+    <img src="https://img.shields.io/badge/Status-Work_In_Progress-orange.svg" alt="Status" />
+  </a>
+  <a href="https://wireless.docs.kernel.org/en/latest/en/users/drivers/mediatek.html">
+    <img src="https://img.shields.io/badge/Mainline_Support-Pending-yellow.svg" alt="Mainline Support" />
+  </a>
+  <a href="https://discord.gg/JGhjAxEFhz">
+    <img src="https://img.shields.io/badge/Discord-Join_Community-7289da.svg" alt="Discord" />
+  </a>
+</p>
+</div>
+
+---
+
 > [!WARNING]
-> This project is now discontinued. Mediatek has released [official patches to support MT7902 on mt76 driver](https://www.phoronix.com/news/Mediatek-MT7902-Linux-Patches) including both SDIO & PCIe. I can finally put this project to rest. mt76 support will available soon, or you can check out my [backporting attempt](https://github.com/hmtheboy154/mt7902/tree/backport) here.
+> **Project Notice**: This community driver is currently discontinued. MediaTek has begun releasing [official patches to support MT7902 on the mainline `mt76` driver](https://www.phoronix.com/news/Mediatek-MT7902-Linux-Patches) (including both SDIO & PCIe). Official `mt76` support will be available soon. You can also monitor experimental [backporting attempts](https://github.com/hmtheboy154/mt7902/tree/backport).
 
 > [!CAUTION]
-> This driver is still in Work-In-Progress state ! Using it requires extra work which will be explained below. It is not suitable for everyday use yet !
+> **Experimental Software**: This driver is in a **Work-In-Progress** state. It is not fully stabilized for strict daily-driver use, and installing it requires some manual configuration. See the Known Issues section below.
 
-# gen4-mt7902
+## 📖 About The Project
 
-This is a driver for the Mediatek MT7902 PCIe card based on the `gen4-mt79xx` driver Mediatek gave for Android OEMs. This driver is extracted from [Xiaomi's rodin BSP](https://github.com/MiCode/MTK_kernel_modules/tree/bsp-rodin-v-oss/connectivity/wlan/core/gen4-mt79xx) and is being modified to focusing on supporting the MT7902 card only. The main goal of the project is to provide an usable driver for this particular M.2 PCIe card which is not available on the [mt76 driver](https://wireless.docs.kernel.org/en/latest/en/users/drivers/mediatek.html) yet.
+This is a driver for the **MediaTek MT7902 M.2 PCIe Wi-Fi card**, based on the `gen4-mt79xx` driver provided by MediaTek to Android OEMs. Originally extracted from [Xiaomi's Rodin BSP](https://github.com/MiCode/MTK_kernel_modules/tree/bsp-rodin-v-oss/connectivity/wlan/core/gen4-mt79xx), this codebase has been refactored and modified to specifically target and support the MT7902.
 
-## Status
+Until the MT7902 chip is officially supported by the kernel's built-in `mt76` module, this `.ko` kernel module serves as a bridge to provide usable Wi-Fi for this hardware on Linux.
 
-The driver is buildable and loadable. It can be able to connect to 2.4Ghz wifi so far. However, upon testing, I've noticed these issues:
+## 📊 Current Status & Known Issues
 
-- Can't switch to 5Ghz if you are on a SSID with both 2.4/5. (it could be because I test this card without antenna !)
-- WPA3 broken when using `iwd` according to this [finding](https://github.com/hmtheboy154/gen4-mt7902/issues/7#issuecomment-3622679513), so use `wpa_supplicant` instead.
-- Can't create wifi hotspot to act as a repeater.
-- Chunky compiled size with almost ~100mb, might be due to the debug code it has.
-- Suspend using s2idle is working thanks to [kadenslater95](https://github.com/kadenslater95), S3 suspend is broken and will show black screen when waking up.
-- There are some reports about the driver causing kernel panic, mostly on ASUS hardware with the AW-XB552NF card. The panic looks like [this](https://tinyurl.com/2s74vtkx) 
+The driver compiles successfully and is capable of connecting to 2.4GHz Wi-Fi networks. However, several bugs and architectural limitations are known:
 
-> [!WARNING]
-> If the wifi is ever flaky just restart your device and it should kick back on. If it doesn't work or the card power management is broken, use `sudo rmmod mt7902` whenever you wanna sleep or shut down the device !
+### 🔴 Known Bugs
+- **Band Switching**: Switching to 5GHz networks may fail if connecting to an SSID broadcasting both 2.4GHz and 5GHz.
+- **WPA3 Compatibility**: WPA3 authentication is broken when using the `iwd` daemon. **Workaround:** Ensure you are using `wpa_supplicant` instead.
+- **Hotspot**: Creating a Wi-Fi hotspot (AP mode) to function as a repeater is currently non-functional.
+- **Power Management (S3 Sleep)**: Suspend-to-RAM (S3) is broken and causes a black screen/kernel panic upon wake. 
+  - **Workaround:** S2idle works correctly. Otherwise, unload the module before sleeping (`sudo rmmod mt7902`).
+- **Binary Size**: The compiled driver size is bloated (~100MB) due to extensive debug code remaining in the OEM sources.
 
-There are some features that are untested such as Bluetooth (which is not covered by this driver) and WIFI 6/6E.
+### 🟡 Untested
+- Bluetooth (Not covered by this specific module).
+- Wi-Fi 6 / 6E throughput and functionality.
 
-## Installation guide
+## ⚙️ Installation & Usage
 
-> [!IMPORTANT]
-> Before building & installing this driver, remember to install essential packages to build a kernel driver like linux kernel's headers & toolchain. I will not cover it here.
+For detailed instructions on compiling the kernel module, deploying the firmware, and setting up DKMS for automatic updates on your Linux distro, please see the dedicated installation guide:
 
-- Get the source by using `git`
+👉 [**View the Comprehensive Installation Guide (INSTALL.md)**](./INSTALL.md)
 
-```bash
-git clone https://github.com/hmtheboy154/gen4-mt7902
-cd gen4-mt7902
-```
+## 💻 Tested Hardware Environment
 
-- To only build the driver, use this command
+This driver has been compiled and tentatively tested against:
+- **Linux Kernel Versions:** `5.4+` recommended.
+- **Wi-Fi Cards:** 
+  - `WMDM-257AX` 
+  - `AW-XB552NF` (Note: Frequent kernel panics have been reported on some ASUS hardware containing this card).
 
-```bash
-make -j$(nproc)
-```
+## 💬 Frequently Asked Questions (FAQ)
 
-- To build the driver & install it, use this command
+<details>
+<summary><b>Can we just add MT7902 support to the official mt76 driver?</b></summary>
+Yes and no. Adding the PCI ID to <code>mt76</code> isn't enough. MediaTek shipped a very unique firmware structure for the MT7921 family. Figuring out how to initialize the MT7902 using the Windows firmware inside <code>mt76</code> is a complex reverse-engineering task. Thankfully, MediaTek's engineers are working on this right now for the mainline kernel.
+</details>
 
-```bash
-sudo make install -j$(nproc)
-```
+<details>
+<summary><b>What about Bluetooth support?</b></summary>
+This module is solely for WLAN. For Bluetooth, an out-of-tree patch for <code>btmtk</code> (based on the Rodin BSP) has been compiled. If you compile your own kernels, you can view the reference patch <a href="https://gist.github.com/hmtheboy154/b2675e02d5f9a0bb861598e77ec2f38f">here</a>.
+</details>
 
-- To install the firmware required for the driver, use this command
+<details>
+<summary><b>Will you provide bug fixes and maintain this?</b></summary>
+As an experimental community project from developers with limited free time, comprehensive maintenance is not guaranteed. Contributions and Pull Requests are incredibly welcome!
+</details>
 
-```bash
-sudo make install_fw
-```
+<details>
+<summary><b>Is there an active gen4m driver we can port from?</b></summary>
+Xiaomi's <a href="https://github.com/MiCode/MTK_kernel_modules/tree/bsp-rodin-v-oss/connectivity/wlan/core/gen4m">gen4m</a> seems properly maintained. However, bringing the MT7902 info from <code>gen4-mt79xx</code> to <code>gen4m</code> involves significant architectural differences. It's theoretically possible for ambitious contributors.
+</details>
 
-Once you got the driver & firmware installed, reboot to see changes.
+## 🤝 Community & Support
 
-### Automatic installation via DKMS
+Need help, have a log dump to share, or want to contribute to testing? 
+Join the development discussions out in the field:
 
-If you want the driver to be automatically rebuilt after each kernel update, use DKMS:
+- 💬 [**Discord Development Group**](https://discord.gg/JGhjAxEFhz) - Chat with other users testing out the MT7902 Linux ecosystem.
 
-- Install DKMS:
-
-```bash
-# Debian/Ubuntu
-sudo apt install dkms
-
-# Fedora
-sudo dnf install dkms
-
-# Arch
-sudo pacman -S dkms
-```
-
-- Copy the source to `/usr/src`:
-
-```bash
-sudo mkdir -p /usr/src/gen4-mt7902-0.1
-sudo cp -r * /usr/src/gen4-mt7902-0.1/
-```
-
-- Register, build, and install the driver with DKMS:
-
-```bash
-sudo dkms add -m gen4-mt7902 -v 0.1
-sudo dkms build -m gen4-mt7902 -v 0.1
-sudo dkms install -m gen4-mt7902 -v 0.1
-```
-
-- To install the firmware required for the driver, use this command (if you didn't install it before)
-
-```bash
-sudo make install_fw
-```
-
-After reboot, the driver should be loaded automatically, and DKMS will rebuild it for any future kernel updates.
-
-## Tested hardware
-
-Currently the driver is being tested on some of these models:
-
-- WMDM-257AX (tested without antenna connected)
-- AW-XB552NF
-
-> [!CAUTION]
-> For AW-XB552NF, you might want to read [Status](#status) again 
-
-## FAQs
-
-### What's the minimum kernel version that the driver is going to aim ?
-
-I'm thinking 5.4+. Older version may work, but you're on your own.
-
-### Will you be around fixing bugs & maintain this driver ?
-
-I will try, but my knowledge & abilities are very limited. Not to mention I am very busy right now due to spending time on [BlissOS](https://blissos.org/) & focusing most of my time on university's capsule project.
-
-Any contributions to the project especially during these times are like **_✨gold✨_** to me, thank you very much. 🙏
-
-### From the info gathered in this driver, can we add MT7902 support to mt76 driver ?
-
-Yes and No. `Yes` you can and I already did some attempt before. However, `No` because it is not as easy as adding mt7902 info to the driver and expecting it to run smoothly. It turned out that Mediatek gave [a very special firmware to the MT7921 family](https://github.com/tnguy3333/mt7902/issues/7#issuecomment-3263501573) and you will have to spend extra time to figuring out how to use the Windows firmware on the mt76 driver.
-
-### How about Bluetooth ?
-
-I don't know, I never tested Bluetooth before. I did make a patch for `btmtk` based on the info I gathered from [rodin's BSP](https://github.com/MiCode/MTK_kernel_modules/tree/bsp-rodin-v-oss/connectivity/bt/linux_v2). If you planned to build the kernel on your own or making OOT driver for `btmtk`, you can find it here:
-
-https://gist.github.com/hmtheboy154/b2675e02d5f9a0bb861598e77ec2f38f
-
-### I noticed there's this newer [gen4m](https://github.com/MiCode/MTK_kernel_modules/tree/bsp-rodin-v-oss/connectivity/wlan/core/gen4m) driver which looks more active. Can we bring MT7902 info to that driver and use it instead ?
-
-Maybe ? I've tried to compare [gen4m's MT7961](https://github.com/MiCode/MTK_kernel_modules/tree/bsp-rodin-v-oss/connectivity/wlan/core/gen4m/chips/mt7961) to the `gen4-mt79xx` one before and looks like there're a lot of changes. It doesn't look impossible though, maybe you can try :).
-
-### Is there a place like a group chat that we can talk about the development of the driver ?
-
-There's this [Discord group](https://discord.gg/JGhjAxEFhz) that I [found](https://github.com/OnlineLearningTutorials/mt7902_temp/issues/8#issuecomment-2933979855).
-
-### Is there any documents to show which device has been tested ? I want to check/contribute to it.
-
-There's one on the Discord group above.
+---
+*Disclaimer: Using experimental kernel modules bears the risk of data loss and system instability. Always ensure you have a backup of your kernel configuration and data.*
