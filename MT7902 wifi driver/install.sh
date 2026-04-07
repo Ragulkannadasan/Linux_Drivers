@@ -13,6 +13,14 @@ echo "firmware using DKMS so it automatically rebuilds"
 echo "whenever you update your kernel."
 echo ""
 
+# Check if running in a VM
+if systemd-detect-virt 2>/dev/null | grep -q -E "(kvm|qemu|virtualbox|vmware)"; then
+    echo "⚠️  Detected running in a virtual machine (e.g., GNOME Boxes)."
+    echo "Note: Wi-Fi functionality may require hardware passthrough (PCIe)."
+    echo "If Wi-Fi doesn't work, ensure the MT7902 card is passed through to the VM."
+    echo ""
+fi
+
 # Check for required packages
 echo "🔎 Checking for necessary build tools..."
 if ! command -v dkms &> /dev/null; then
@@ -21,9 +29,6 @@ if ! command -v dkms &> /dev/null; then
         # Ubuntu/Debian
         sudo apt update
         sudo apt install -y dkms linux-headers-$(uname -r) build-essential
-    elif command -v dnf &> /dev/null; then
-        # Fedora
-        sudo dnf install -y dkms kernel-devel kernel-headers gcc make
     else
         echo "❌ Unsupported package manager. Please install dkms, kernel headers, gcc, and make manually."
         exit 1

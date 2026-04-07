@@ -246,7 +246,7 @@ install_fw:
 	@install -Dvm 644 -t $(FWDIR) firmware/*.bin
 	@rm -f $(FWDIR)/*.xz $(FWDIR)/*.zst $(FWDIR)/*.gz
 driver:
-	+cd $(DRIVER_DIR) && make -C $(LINUX_SRC) M=$(DRIVER_DIR) PLATFORM_FLAGS="$(PLATFORM_FLAGS)" modules
+	+cd "$(DRIVER_DIR)" && make -C $(LINUX_SRC) M="$(DRIVER_DIR)" PLATFORM_FLAGS="$(PLATFORM_FLAGS)" modules
 
 # driver:
 #	+cd $(DRIVER_DIR) && make -C $(LINUX_SRC) M=$(DRIVER_DIR) PLATFORM_FLAGS="$(PLATFORM_FLAGS)" modules
@@ -255,6 +255,6 @@ driver:
 clean: driver_clean
 
 driver_clean:
-	cd $(DRIVER_DIR) && make -C $(LINUX_SRC) M=$(DRIVER_DIR) clean
+	cd "$(DRIVER_DIR)" && make -C $(LINUX_SRC) M="$(DRIVER_DIR)" clean
 
 .PHONY: all clean driver driver_clean
