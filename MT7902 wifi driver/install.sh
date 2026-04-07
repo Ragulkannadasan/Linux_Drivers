@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#!/bin/bash
+
 # Exit on any error
 set -e
 
@@ -8,14 +10,24 @@ echo "🚀 MediaTek MT7902 Wi-Fi Driver Auto-Installer"
 echo "=================================================="
 echo "This script will install the driver and necessary"
 echo "firmware using DKMS so it automatically rebuilds"
-echo "whenever you update your Fedora kernel."
+echo "whenever you update your kernel."
 echo ""
 
 # Check for required packages
 echo "🔎 Checking for necessary build tools..."
 if ! command -v dkms &> /dev/null; then
     echo "⚠️  DKMS is not installed. Attempting to install it..."
-    sudo dnf install -y dkms kernel-devel kernel-headers gcc make
+    if command -v apt &> /dev/null; then
+        # Ubuntu/Debian
+        sudo apt update
+        sudo apt install -y dkms linux-headers-$(uname -r) build-essential
+    elif command -v dnf &> /dev/null; then
+        # Fedora
+        sudo dnf install -y dkms kernel-devel kernel-headers gcc make
+    else
+        echo "❌ Unsupported package manager. Please install dkms, kernel headers, gcc, and make manually."
+        exit 1
+    fi
 fi
 
 echo "📦 1. Installing MT7902 firmware matching your region/card..."
