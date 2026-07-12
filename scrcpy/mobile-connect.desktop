@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Mobile Connect
+Comment=Connect Android via ADB and open Scrcpy
+Exec=bash -c "$HOME/mobile_connect.sh"
+Icon=/home/ragul/.gemini/antigravity/brain/79607474-3037-4aa1-9e93-4d78712a6cb0/mobile_connect_icon_1783601079667.png
+Terminal=false
+Type=Application
+Categories=Utility;
